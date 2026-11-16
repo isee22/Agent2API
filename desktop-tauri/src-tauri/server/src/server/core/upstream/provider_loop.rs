@@ -418,7 +418,7 @@ pub(super) async fn forward_with_providers(
     if ctx.routing.group.is_some() {
         ctx.telemetry.set_route_decision(json!({ "scope": ctx.routing.scope, "configSnapshot": ctx.routing.json(),
             "strategy": ctx.routing.settings.strategy.as_str(), "sticky": ctx.routing.settings.sticky.as_str(),
-            "ordered": [], "blocked": ctx.routing.group_projection.blocked.iter().take(12).collect::<Vec<_>>(),
+            "ordered": [], "blocked": ctx.routing.group_projection.blocked.iter().take(rotate::ROUTE_SNAPSHOT_LIMIT).collect::<Vec<_>>(),
             "orderedTotal": ctx.routing.group_projection.accounts.len(), "blockedTotal": ctx.routing.group_projection.blocked.len() }));
     }
     // 候选家来自 `route_for_forward`（目录里没有这个模型名时会回落成默认
@@ -621,7 +621,7 @@ async fn attempt_queue(
         });
         if ctx.routing.settings.sticky.ttl_ms().is_some() { decision["stickyId"] = decision["sessionId"].clone(); }
         if let Some(group) = &ctx.routing.group {
-            decision["blocked"] = json!(ctx.routing.group_projection.blocked.iter().take(12).collect::<Vec<_>>());
+            decision["blocked"] = json!(ctx.routing.group_projection.blocked.iter().take(rotate::ROUTE_SNAPSHOT_LIMIT).collect::<Vec<_>>());
             decision["blockedTotal"] = ctx.routing.group_projection.blocked.len().into();
             decision["groupId"] = group.id.clone().into();
         }
